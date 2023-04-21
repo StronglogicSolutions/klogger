@@ -1,42 +1,122 @@
 #pragma once
 
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
-#include <spdlog/spdlog.h>
-#include <chrono>
-#include <iostream>
 #include <map>
-#include <memory>
-
-#define VLOG SPDLOG_TRACE
-#define DLOG SPDLOG_DEBUG
-#define KLOG SPDLOG_INFO
-#define WLOG SPDLOG_WARN
-#define ELOG SPDLOG_ERROR
-#define CLOG SPDLOG_CRITICAL
+#include <g3log/g3log.hpp>
+#include <g3log/logworker.hpp>
 
 namespace kiq::log {
-using log_ptr_t  = std::shared_ptr<spdlog::logger>;
-using loglevel_t = std::map<std::string, spdlog::level::level_enum>;
 
-static const loglevel_t log_level{
-  {"trace",    spdlog::level::trace},
-  {"debug",    spdlog::level::debug},
-  {"info",     spdlog::level::info},
-  {"warn",     spdlog::level::warn},
-  {"error",    spdlog::level::err},
-  {"critical", spdlog::level::critical},
-  {"off",      spdlog::level::off}
+enum class custom_levels
+{
+  error = 600,
+  trace = 700
 };
+//-------------------------------------------------
+constexpr const int custom_error = static_cast<int>(custom_levels::error);
+constexpr const int custom_trace = static_cast<int>(custom_levels::trace);
+//-------------------------------------------------
+static const LEVELS ERROR { custom_error, {"ERROR"} };
+static const LEVELS TRACE { custom_trace, {"TRACE"} };
+//-------------------------------------------------
+struct coloursink
+{
+  enum colour
+  {
+    YELLOW   = 93,
+    RED      = 31,
+    GREEN    = 38,
+    WHITE    = 97,
+    MAGENTA  = 35,
+    TURQOISE = 36
+  };
 
+  colour to_colour(const LEVELS level)  const;
+  void   write(g3::LogMessageMover log) const;
+};
+//-------------------------------------------------
 static const char* default_log_level = "info";
-
-
+namespace
+{
+  std::unique_ptr<g3::LogWorker> lg_;
+}
+//-------------------------------------------------
+enum class loglevel
+{
+  silent = 0x00,
+  fatal  = g3::kFatalValue,
+  error  = custom_error,
+  warn   = g3::kWarningValue,
+  info   = g3::kInfoValue,
+  debug  = g3::kDebugValue,
+  trace  = custom_trace
+};
+//-------------------------------------------------
+using loglevel_t = std::map<std::string, loglevel>;
+static const loglevel_t log_level
+{
+  {"trace",    loglevel::trace  },
+  {"debug",    loglevel::debug  },
+  {"info",     loglevel::info   },
+  {"warn",     loglevel::warn   },
+  {"error",    loglevel::error  },
+  {"fatal",    loglevel::fatal  },
+  {"silent",   loglevel::silent }
+};
+//-------------------------------------------------
+//--------------------klogger----------------------
+//-------------------------------------------------
 class klogger {
- public:
-  klogger(const std::string&);
-  ~klogger();
-
-  static void init(const std::string& level = default_log_level);
+public:
+  klogger(const std::string& level, const std::string& name = "KLOG", const std::string& path = "/tmp/");
+//-------------------------------------------------
+  template<typename... Args>
+  void d(const char* format, Args&&... args)
+  {
+    if (level_ >= loglevel::debug)
+      LOGF(DEBUG, format, args...);
+  }
+//-------------------------------------------------
+  template<typename... Args>
+  void w(const char* format, Args&&... args)
+  {
+    if (level_ >= loglevel::warn)
+      LOGF(WARNING, format, args...);
+  }
+//-------------------------------------------------
+  template<typename... Args>
+  void i(const char* format, Args&&... args)
+  {
+    if (level_ >= loglevel::info)
+      LOGF(INFO, format, args...);
+  }
+//-------------------------------------------------
+  template<typename... Args>
+  void e(const char* format, Args&&... args)
+  {
+    if (level_ >= loglevel::error)
+      LOGF(ERROR, format, args...);
+  }
+//-------------------------------------------------
+  template<typename... Args>
+  void f(const char* format, Args&&... args)
+  {
+    if (level_ >= loglevel::fatal)
+      LOGF(FATAL, format, args...);
+  }
+//-------------------------------------------------
+  template<typename... Args>
+  void t(const char* format, Args&&... args)
+  {
+    if (level_ >= loglevel::trace)
+      LOGF(TRACE, format, args...);
+  }
+//-------------------------------------------------
+  static void    init(const std::string& level = default_log_level);
   static klogger instance();
+
+private:
+  void set_level(loglevel level);
+
+  loglevel level_;
 };
 }  // namespace kiq::log
