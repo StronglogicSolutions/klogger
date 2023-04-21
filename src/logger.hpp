@@ -70,42 +70,42 @@ public:
   klogger(const std::string& level, const std::string& name = "KLOG", const std::string& path = "/tmp/");
 //-------------------------------------------------
   template<typename... Args>
-  void d(const char* format, Args&&... args)
+  void d(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::debug)
       LOGF(DEBUG, format, args...);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void w(const char* format, Args&&... args)
+  void w(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::warn)
       LOGF(WARNING, format, args...);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void i(const char* format, Args&&... args)
+  void i(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::info)
       LOGF(INFO, format, args...);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void e(const char* format, Args&&... args)
+  void e(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::error)
       LOGF(ERROR, format, args...);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void f(const char* format, Args&&... args)
+  void f(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::fatal)
       LOGF(FATAL, format, args...);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void t(const char* format, Args&&... args)
+  void t(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::trace)
       LOGF(TRACE, format, args...);
