@@ -1,3 +1,6 @@
 [submodule "third_party/spdlog"]
 	path = src/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "third_party/g3log"]
+	path = third_party/g3log
+	url = https://github.com/KjellKod/g3log/
