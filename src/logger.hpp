@@ -3,6 +3,7 @@
 #include <map>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
+#include <iostream>
 
 namespace kiq::log {
 
@@ -32,8 +33,32 @@ struct coloursink
 
   colour to_colour(const LEVELS level)  const;
   void   write(g3::LogMessageMover log) const;
+  void   set_func(const std::string&);
+
+private:
+  std::string fn_;
 };
 //-------------------------------------------------
+class sink_func_holder
+{
+public:
+  void set_fn(const std::string& s)
+  {
+    std::cout << "setting fn" << std::endl;
+    fn_ = s;
+  }
+
+  std::string get_fn()
+  {
+    std::cout << "returning fn " << fn_ << std::endl;
+    return fn_;
+  }
+
+private:
+  std::string fn_{""};
+};
+
+static sink_func_holder* g_sink_fn_instance;
 static const char* default_log_level = "info";
 namespace
 {
@@ -72,8 +97,18 @@ public:
   template<typename... Args>
   void d(const char* format, Args&&... args) const
   {
+    const auto builtin_name = __builtin_FUNCTION();
+    std::cout << "Got name " << builtin_name << std::endl;
+    if (g_sink_fn_instance)
+      g_sink_fn_instance->set_fn(builtin_name);
+    else
+      return;
+
     if (level_ >= loglevel::debug)
+    {
+      std::cout << "Calling log function as debug" << std::endl;
       LOGF(DEBUG, format, args...);
+    }
   }
 //-------------------------------------------------
   template<typename... Args>
@@ -117,6 +152,6 @@ public:
 private:
   void set_level(loglevel level);
 
-  loglevel level_;
+  loglevel      level_;
 };
 }  // namespace kiq::log
