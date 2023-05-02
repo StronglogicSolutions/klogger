@@ -10,19 +10,22 @@ coloursink::colour coloursink::to_colour(const LEVELS level) const
 {
   switch (level.value)
   {
-    case g3::kWarningValue : return coloursink::colour::YELLOW;
-    case g3::kDebugValue   : return coloursink::colour::WHITE;
+    case g3::kWarningValue :                                return coloursink::colour::YELLOW;
+    case g3::kDebugValue   :                                return coloursink::colour::WHITE;
     case g3::kFatalValue   : g3::internal::wasFatal(level); return coloursink::colour::RED;
-    case custom_error      : return coloursink::colour::MAGENTA;
-    case custom_trace      : return coloursink::colour::TURQOISE;
-    default:                 return coloursink::colour::GREEN;
+    case custom_error      :                                return coloursink::colour::MAGENTA;
+    case custom_trace      :                                return coloursink::colour::TURQOISE;
+    default:                                                return coloursink::colour::GREEN;
   }
 }
 //-------------------------------------------------
 void coloursink::write(g3::LogMessageMover log) const
 {
   const auto msg = log.get();
-  std::cout << "\033[" << to_colour(log.get()._level) << "m" <<
+  if (static_cast<int>(klogger::instance().get_level()) < msg._level.value)
+    return;
+
+  std::cout << "\033[" << to_colour(msg._level) << "m" <<
     msg.timestamp() + "\t" + msg.level()    + " [" + msg.threadID() + " "      +
     msg.file()      + "::" + msg.function() + ":"  + msg.line()     + "] - \t" +
     msg.message() << "\033[m" << std::endl;
@@ -45,6 +48,11 @@ void klogger::set_level(loglevel level)
 {
   level_ = level;
   std::cout << "Set log level to " << static_cast<int>(level) << std::endl;
+}
+//-------------------------------------------------
+loglevel klogger::get_level() const
+{
+  return level_;
 }
 //-------------------------------------------------
 void klogger::init(const std::string& level)

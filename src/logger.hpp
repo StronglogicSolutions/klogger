@@ -128,6 +128,8 @@ public:
       LOGF(TRACE, format, args...);
   }
 //-------------------------------------------------
+  loglevel get_level() const;
+//-------------------------------------------------
   static void    init(const std::string& level = default_log_level);
   static klogger instance();
 
