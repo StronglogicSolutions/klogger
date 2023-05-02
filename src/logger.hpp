@@ -3,6 +3,8 @@
 #include <map>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
+#include <iostream>
+#include <source_location>
 
 namespace kiq::log {
 
@@ -32,6 +34,10 @@ struct coloursink
 
   colour to_colour(const LEVELS level)  const;
   void   write(g3::LogMessageMover log) const;
+  void   set_func(const std::string&);
+
+private:
+  std::string fn_;
 };
 //-------------------------------------------------
 static const char* default_log_level = "info";
@@ -68,6 +74,17 @@ static const loglevel_t log_level
 class klogger {
 public:
   klogger(const std::string& level, const std::string& name = "KLOG", const std::string& path = "/tmp/");
+//-------------------------------------------------
+//----------------MACRO LOGGER---------------------
+//-------------------------------------------------
+#define DLOG(...) LOGF(DEBUG,           ##__VA_ARGS__)
+#define WLOG(...) LOGF(WARNING,         ##__VA_ARGS__)
+#define TLOG(...) LOGF(kiq::log::TRACE, ##__VA_ARGS__)
+#define FLOG(...) LOGF(FATAL,           ##__VA_ARGS__)
+#define ELOG(...) LOGF(kiq::log::ERROR, ##__VA_ARGS__)
+#define KLOG(...) LOGF(INFO,            ##__VA_ARGS__)
+//-------------------------------------------------
+//----------------CLASS LOGGER---------------------
 //-------------------------------------------------
   template<typename... Args>
   void d(const char* format, Args&&... args) const
@@ -117,6 +134,6 @@ public:
 private:
   void set_level(loglevel level);
 
-  loglevel level_;
+  loglevel      level_;
 };
 }  // namespace kiq::log
