@@ -4,6 +4,7 @@
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
 #include <iostream>
+#include <source_location>
 
 namespace kiq::log {
 
@@ -39,26 +40,6 @@ private:
   std::string fn_;
 };
 //-------------------------------------------------
-class sink_func_holder
-{
-public:
-  void set_fn(const std::string& s)
-  {
-    std::cout << "setting fn" << std::endl;
-    fn_ = s;
-  }
-
-  std::string get_fn()
-  {
-    std::cout << "returning fn " << fn_ << std::endl;
-    return fn_;
-  }
-
-private:
-  std::string fn_{""};
-};
-
-static sink_func_holder* g_sink_fn_instance;
 static const char* default_log_level = "info";
 namespace
 {
@@ -94,21 +75,22 @@ class klogger {
 public:
   klogger(const std::string& level, const std::string& name = "KLOG", const std::string& path = "/tmp/");
 //-------------------------------------------------
+//----------------MACRO LOGGER---------------------
+//-------------------------------------------------
+#define DLOG(...) LOGF(DEBUG,           ##__VA_ARGS__)
+#define WLOG(...) LOGF(WARNING,         ##__VA_ARGS__)
+#define TLOG(...) LOGF(kiq::log::TRACE, ##__VA_ARGS__)
+#define FLOG(...) LOGF(FATAL,           ##__VA_ARGS__)
+#define ELOG(...) LOGF(kiq::log::ERROR, ##__VA_ARGS__)
+#define KLOG(...) LOGF(INFO,            ##__VA_ARGS__)
+//-------------------------------------------------
+//----------------CLASS LOGGER---------------------
+//-------------------------------------------------
   template<typename... Args>
   void d(const char* format, Args&&... args) const
   {
-    const auto builtin_name = __builtin_FUNCTION();
-    std::cout << "Got name " << builtin_name << std::endl;
-    if (g_sink_fn_instance)
-      g_sink_fn_instance->set_fn(builtin_name);
-    else
-      return;
-
     if (level_ >= loglevel::debug)
-    {
-      std::cout << "Calling log function as debug" << std::endl;
       LOGF(DEBUG, format, args...);
-    }
   }
 //-------------------------------------------------
   template<typename... Args>
