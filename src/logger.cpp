@@ -1,5 +1,6 @@
 #include "logger.hpp"
 #include <iostream>
+#include <iomanip>
 
 namespace kiq::log
 {
@@ -26,9 +27,10 @@ void coloursink::write(g3::LogMessageMover log) const
     return;
 
   std::cout << "\033[" << to_colour(msg._level) << "m" <<
-    msg.timestamp() + "\t" + msg.level()    + " [" + msg.threadID() + " "      +
-    msg.file()      + "::" + msg.function() + ":"  + msg.line()     + "] - \t" +
-    msg.message() << "\033[m" << std::endl;
+    msg.timestamp() << std::setw(9) << " - ["   + msg.level() +"]\t["   +
+    msg.file() + "::" + msg.function() + "():"  + msg.line()  + "]\t- " +
+    msg.message() << "\033[m" <<
+  std::endl;
 }
 //-------------------------------------------------
 void coloursink::set_func(const std::string& fn)
