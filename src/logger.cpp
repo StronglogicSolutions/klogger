@@ -26,9 +26,9 @@ void coloursink::write(g3::LogMessageMover log) const
   if (static_cast<int>(klogger::instance().get_level()) < msg._level.value)
     return;
 
-  std::cout << "\033[" << to_colour(msg._level) << "m" <<
-    msg.timestamp() << std::setw(9) << " - ["   + msg.level() +"]\t["   +
-    msg.file() + "::" + msg.function() + "():"  + msg.line()  + "]\t- " +
+  std::cout       << "\033[" << to_colour(msg._level) << "m" <<
+    msg.timestamp() << std::setw(9) << " [" + msg.level()    + "]\t["  +
+    msg.file() + ":" + msg.line() + " "     + msg.function() + "()]\t" +
     msg.message() << "\033[m" <<
   std::endl;
 }
