@@ -3,10 +3,6 @@
 #include <map>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
-#include <iostream>
-#include <source_location>
-#include <sstream>
-#include <fstream>
 
 namespace kiq::log {
 
