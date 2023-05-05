@@ -5,6 +5,8 @@
 #include <g3log/logworker.hpp>
 #include <iostream>
 #include <source_location>
+#include <sstream>
+#include <fstream>
 
 namespace kiq::log {
 
@@ -73,7 +75,9 @@ static const loglevel_t log_level
 //-------------------------------------------------
 class klogger {
 public:
-  klogger(const std::string& level, const std::string& name = "KLOG", const std::string& path = "/tmp/");
+  klogger(const std::string& name  = "KLOG",
+          const std::string& level = default_log_level,
+          const std::string& path = "/tmp/");
 //-------------------------------------------------
 //----------------MACRO LOGGER---------------------
 //-------------------------------------------------
@@ -130,7 +134,7 @@ public:
 //-------------------------------------------------
   loglevel get_level() const;
 //-------------------------------------------------
-  static void    init(const std::string& level = default_log_level);
+  static void    init(const std::string& name, const std::string& level = default_log_level);
   static klogger instance();
 
 private:

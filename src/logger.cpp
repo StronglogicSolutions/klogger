@@ -38,7 +38,7 @@ void coloursink::set_func(const std::string& fn)
   fn_ = fn;
 }
 //-------------------------------------------------
-klogger::klogger(const std::string& level, const std::string& name, const std::string& path)
+klogger::klogger(const std::string& name, const std::string& level, const std::string& path)
 {
   lg_ = g3::LogWorker::createLogWorker();
   lg_->addDefaultLogger(name, path);
@@ -49,7 +49,6 @@ klogger::klogger(const std::string& level, const std::string& name, const std::s
 void klogger::set_level(loglevel level)
 {
   level_ = level;
-  std::cout << "Set log level to " << static_cast<int>(level) << std::endl;
 }
 //-------------------------------------------------
 loglevel klogger::get_level() const
@@ -57,10 +56,10 @@ loglevel klogger::get_level() const
   return level_;
 }
 //-------------------------------------------------
-void klogger::init(const std::string& level)
+void klogger::init(const std::string& name, const std::string& level)
 {
   if (!g_instance)
-    g_instance = new klogger(level);
+    g_instance = new klogger(name, level);
   g_instance->set_level(log_level.at(level));
 }
 //-------------------------------------------------
