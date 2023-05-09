@@ -3,6 +3,8 @@
 #include <map>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
+#include <tuple>
+#include <iostream>
 
 namespace kiq::log {
 
@@ -86,11 +88,13 @@ public:
 //-------------------------------------------------
 //----------------CLASS LOGGER---------------------
 //-------------------------------------------------
-  template<typename... Args>
-  void d(const char* format, Args&&... args) const
+  template<typename... Args>//__builtin_FUNCTION()>
+  void d(const char* format, std::tuple<Args&&...> args, const char* fn = __builtin_FUNCTION()) const
   {
+    auto call = [](Args&&... args, const auto format) { };
+    std::cout << "d called from location: " << fn << std::endl;
     if (level_ >= loglevel::debug)
-      LOGF(DEBUG, format, args...);
+      std::apply(call, args);
   }
 //-------------------------------------------------
   template<typename... Args>

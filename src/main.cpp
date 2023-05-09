@@ -5,7 +5,7 @@ int main(int argc, char* argv[])
   kiq::log::klogger::init("klogger", "trace");
   auto logger = kiq::log::klogger::instance();
 
-  logger.d("Let's test this out with the number %d", 99);  // obj logger
+  logger.d("Let's test this out with the number %d", std::tuple{99});  // obj logger
 
   KLOG("Let's test this out with the number %d", 90);      // macro logger
   DLOG("Let's test this out with the number %d", 91);
