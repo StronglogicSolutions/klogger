@@ -42,6 +42,11 @@ private:
   std::string fn_;
 };
 //-------------------------------------------------
+struct filesink
+{
+  void write(g3::LogMessageMover) const;
+};
+//-------------------------------------------------
 static const char* default_log_level = "info";
 namespace
 {
