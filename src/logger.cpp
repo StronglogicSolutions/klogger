@@ -33,11 +33,6 @@ void coloursink::write(g3::LogMessageMover log) const
   std::endl;
 }
 //-------------------------------------------------
-void coloursink::set_func(const std::string& fn)
-{
-  fn_ = fn;
-}
-//-------------------------------------------------
 klogger::klogger(const std::string& name, const std::string& level, const std::string& path)
 {
   lg_ = g3::LogWorker::createLogWorker();
