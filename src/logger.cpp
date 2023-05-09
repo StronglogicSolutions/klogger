@@ -1,22 +1,23 @@
 #include "logger.hpp"
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 
 namespace kiq::log
 {
 
 static klogger*          g_instance{nullptr};
 //-------------------------------------------------
-coloursink::colour coloursink::to_colour(const LEVELS level) const
+static colour to_colour(const LEVELS level)
 {
   switch (level.value)
   {
-    case g3::kWarningValue :                                return coloursink::colour::YELLOW;
-    case g3::kDebugValue   :                                return coloursink::colour::WHITE;
-    case g3::kFatalValue   : g3::internal::wasFatal(level); return coloursink::colour::RED;
-    case custom_error      :                                return coloursink::colour::MAGENTA;
-    case custom_trace      :                                return coloursink::colour::TURQOISE;
-    default:                                                return coloursink::colour::GREEN;
+    case g3::kWarningValue :                                return colour::YELLOW;
+    case g3::kDebugValue   :                                return colour::WHITE;
+    case g3::kFatalValue   : g3::internal::wasFatal(level); return colour::RED;
+    case custom_error      :                                return colour::MAGENTA;
+    case custom_trace      :                                return colour::TURQOISE;
+    default:                                                return colour::GREEN;
   }
 }
 //-------------------------------------------------
@@ -33,11 +34,22 @@ void coloursink::write(g3::LogMessageMover log) const
   std::endl;
 }
 //-------------------------------------------------
+static std::string klog_message_format(const g3::LogMessage& msg)
+{
+  std::stringstream ss;
+  ss << "\033[" << to_colour(msg._level) << "m" <<
+    msg.timestamp() << std::setw(9) << " [" + msg.level()    + "]\t["  +
+    msg.file() + ":" + msg.line() + " "     + msg.function() + "()]\t" +
+    msg.message() << "\033[m";
+  return ss.str();
+}
+//-------------------------------------------------
 klogger::klogger(const std::string& name, const std::string& level, const std::string& path)
 {
-  lg_ = g3::LogWorker::createLogWorker();
-  lg_->addDefaultLogger(name, path);
-  lg_->addSink(std::make_unique<coloursink>(), &coloursink::write);
+  lg_          = g3::LogWorker::createLogWorker();
+  auto handler = lg_->addDefaultLogger(name, path, "kiq");
+  handler->call   (&g3::FileSink::overrideLogDetails, &klog_message_format);
+  lg_    ->addSink(std::make_unique<coloursink>(),    &coloursink::write);
   g3::initializeLogging(lg_.get());
 }
 //-------------------------------------------------

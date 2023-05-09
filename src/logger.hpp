@@ -3,10 +3,6 @@
 #include <map>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
-#include <iostream>
-#include <source_location>
-#include <sstream>
-#include <fstream>
 
 namespace kiq::log {
 
@@ -14,6 +10,16 @@ enum class custom_levels
 {
   error = 600,
   trace = 700
+};
+//-------------------------------------------------
+enum colour
+{
+  YELLOW   = 93,
+  RED      = 31,
+  GREEN    = 38,
+  WHITE    = 97,
+  MAGENTA  = 35,
+  TURQOISE = 36
 };
 //-------------------------------------------------
 constexpr const int custom_error = static_cast<int>(custom_levels::error);
@@ -24,18 +30,7 @@ static const LEVELS TRACE { custom_trace, {"TRACE"} };
 //-------------------------------------------------
 struct coloursink
 {
-  enum colour
-  {
-    YELLOW   = 93,
-    RED      = 31,
-    GREEN    = 38,
-    WHITE    = 97,
-    MAGENTA  = 35,
-    TURQOISE = 36
-  };
-
-  colour to_colour(const LEVELS level)  const;
-  void   write(g3::LogMessageMover log) const;
+  void write(g3::LogMessageMover log) const;
 };
 //-------------------------------------------------
 struct filesink
