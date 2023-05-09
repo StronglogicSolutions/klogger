@@ -36,10 +36,6 @@ struct coloursink
 
   colour to_colour(const LEVELS level)  const;
   void   write(g3::LogMessageMover log) const;
-  void   set_func(const std::string&);
-
-private:
-  std::string fn_;
 };
 //-------------------------------------------------
 static const char* default_log_level = "info";
