@@ -10,4 +10,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE "src")
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${G3LOG})
 
-add_subdirectory(third_party/g3log)
+add_subdirectory(third_party/k3log)
