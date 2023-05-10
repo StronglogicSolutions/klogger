@@ -40,7 +40,7 @@ static std::string klog_message_format(const g3::LogMessage& msg)
   ss << "\033[" << to_colour(msg._level) << "m" <<
     msg.timestamp() << std::setw(9) << " [" + msg.level()    + "]\t["  +
     msg.file() + ":" + msg.line() + " "     + msg.function() + "()]\t" +
-    msg.message() << "\033[m";
+    msg.message() << "\033[m\n";
   return ss.str();
 }
 //-------------------------------------------------
