@@ -1,6 +1,10 @@
 #pragma once
 
 #include <map>
+#include <iostream>
+#include <iomanip>
+#include <source_location>
+#include <fmt/format.h>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
 
@@ -21,6 +25,8 @@ enum colour
   MAGENTA  = 35,
   TURQOISE = 36
 };
+//-------------------------------------------------
+colour to_colour(const LEVELS level);
 //-------------------------------------------------
 constexpr const int custom_error = static_cast<int>(custom_levels::error);
 constexpr const int custom_trace = static_cast<int>(custom_levels::trace);
@@ -69,63 +75,69 @@ static const loglevel_t log_level
 //-------------------------------------------------
 //--------------------klogger----------------------
 //-------------------------------------------------
+
+struct fmt_loc
+{
+  const char* value_;
+  std::source_location loc_;
+
+  fmt_loc(const char* s, const std::source_location& l = std::source_location::current())
+  : value_(s),
+    loc_(l) {}
+};
+
 class klogger {
 public:
   klogger(const std::string& name  = "KLOG",
           const std::string& level = default_log_level,
           const std::string& path = "/tmp/");
-//-------------------------------------------------
-//----------------MACRO LOGGER---------------------
-//-------------------------------------------------
-#define DLOG(...) LOGF(DEBUG,           ##__VA_ARGS__)
-#define WLOG(...) LOGF(WARNING,         ##__VA_ARGS__)
-#define TLOG(...) LOGF(kiq::log::TRACE, ##__VA_ARGS__)
-#define FLOG(...) LOGF(FATAL,           ##__VA_ARGS__)
-#define ELOG(...) LOGF(kiq::log::ERROR, ##__VA_ARGS__)
-#define KLOG(...) LOGF(INFO,            ##__VA_ARGS__)
-//-------------------------------------------------
-//----------------CLASS LOGGER---------------------
-//-------------------------------------------------
+
   template<typename... Args>
-  void d(const char* format, Args&&... args) const
+  void d(const fmt_loc& format, Args&&... args) const
   {
     if (level_ >= loglevel::debug)
-      LOGF(DEBUG, format, args...);
+    {
+      std::cout << "\033[" << to_colour(DEBUG) << "m" <<
+        "2023-05-23 8:57pm" << std::setw(9) << " [DEBUG]\t["  <<
+        format.loc_.file_name() << ":" + format.loc_.line() << " " << format.loc_.function_name() << "()]\t" +
+        fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...) << "\033[m" <<
+      std::endl;
+    }
   }
 //-------------------------------------------------
   template<typename... Args>
   void w(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::warn)
-      LOGF(WARNING, format, args...);
+      std::cout << fmt::format(fmt::runtime(format), std::forward<Args>(args)...) << std::endl;
   }
 //-------------------------------------------------
   template<typename... Args>
   void i(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::info)
-      LOGF(INFO, format, args...);
+      std::cout << fmt::format(fmt::runtime(format), std::forward<Args>(args)...) << std::endl;
   }
 //-------------------------------------------------
   template<typename... Args>
   void e(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::error)
-      LOGF(ERROR, format, args...);
+      std::cout << fmt::format(fmt::runtime(format), std::forward<Args>(args)...) << std::endl;
   }
 //-------------------------------------------------
   template<typename... Args>
   void f(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::fatal)
-      LOGF(FATAL, format, args...);
+      std::cout << fmt::format(fmt::runtime(format), std::forward<Args>(args)...) << std::endl;
   }
 //-------------------------------------------------
   template<typename... Args>
   void t(const char* format, Args&&... args) const
   {
     if (level_ >= loglevel::trace)
-      LOGF(TRACE, format, args...);
+      std::cout << fmt::format(fmt::runtime(format), std::forward<Args>(args)...) << std::endl;
   }
 //-------------------------------------------------
   loglevel get_level() const;

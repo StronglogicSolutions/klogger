@@ -8,7 +8,7 @@ namespace kiq::log
 
 static klogger*          g_instance{nullptr};
 //-------------------------------------------------
-static colour to_colour(const LEVELS level)
+colour to_colour(const LEVELS level)
 {
   switch (level.value)
   {
