@@ -73,20 +73,40 @@ static const loglevel_t log_level
   {"silent",   loglevel::silent }
 };
 //-------------------------------------------------
-//--------------------klogger----------------------
-//-------------------------------------------------
-
 struct fmt_loc
 {
-  const char* value_;
+  const char*          value_;
   std::source_location loc_;
 
   fmt_loc(const char* s, const std::source_location& l = std::source_location::current())
   : value_(s),
     loc_(l) {}
 };
+//-------------------------------------------------
+static std::string func_name(const std::source_location& loc)
+{
+  std::string full = loc.function_name();
+  const auto  beg  = full.find_first_of(' ') + 1;
+  return full.substr(beg, beg);
+}
+//-------------------------------------------------
+static void to_std_out(const LEVELS& level, const std::string& message, const std::source_location& loc)
+{
+  const auto full_file = std::string{loc.file_name()};
+  const auto file      = full_file.substr(full_file.find_last_of('/') + 1);
+  const auto timestamp = g3::localtime_formatted(g3::to_system_time(
+    g3::high_resolution_time_point{std::chrono::system_clock::now()}), g3::internal::date_formatted + " " + g3::internal::time_formatted);
 
-class klogger {
+  std::cout <<
+    "\033[" << to_colour(level) << "m" << timestamp << " [" << level.text << "]\t[" << file << ":" << loc.line() << " " << func_name(loc) << "()]\t" <<
+    message << "\033[m" <<
+  std::endl;
+}
+//-------------------------------------------------
+//--------------------klogger----------------------
+//-------------------------------------------------
+class klogger
+{
 public:
   klogger(const std::string& name  = "KLOG",
           const std::string& level = default_log_level,
@@ -96,48 +116,42 @@ public:
   void d(const fmt_loc& format, Args&&... args) const
   {
     if (level_ >= loglevel::debug)
-    {
-      std::cout << "\033[" << to_colour(DEBUG) << "m" <<
-        "2023-05-23 8:57pm" << std::setw(9) << " [DEBUG]\t["  <<
-        format.loc_.file_name() << ":" + format.loc_.line() << " " << format.loc_.function_name() << "()]\t" +
-        fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...) << "\033[m" <<
-      std::endl;
-    }
+      to_std_out(DEBUG, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void w(const char* format, Args&&... args) const
+  void w(const fmt_loc& format, Args&&... args) const
   {
     if (level_ >= loglevel::warn)
-      std::cout << fmt::format(fmt::runtime(format), std::forward<Args>(args)...) << std::endl;
+      to_std_out(WARNING, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void i(const char* format, Args&&... args) const
+  void i(const fmt_loc& format, Args&&... args) const
   {
     if (level_ >= loglevel::info)
-      std::cout << fmt::format(fmt::runtime(format), std::forward<Args>(args)...) << std::endl;
+      to_std_out(INFO, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void e(const char* format, Args&&... args) const
+  void e(const fmt_loc& format, Args&&... args) const
   {
     if (level_ >= loglevel::error)
-      std::cout << fmt::format(fmt::runtime(format), std::forward<Args>(args)...) << std::endl;
+      to_std_out(ERROR, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void f(const char* format, Args&&... args) const
+  void f(const fmt_loc& format, Args&&... args) const
   {
     if (level_ >= loglevel::fatal)
-      std::cout << fmt::format(fmt::runtime(format), std::forward<Args>(args)...) << std::endl;
+      to_std_out(FATAL, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void t(const char* format, Args&&... args) const
+  void t(const fmt_loc& format, Args&&... args) const
   {
     if (level_ >= loglevel::trace)
-      std::cout << fmt::format(fmt::runtime(format), std::forward<Args>(args)...) << std::endl;
+      to_std_out(TRACE, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   loglevel get_level() const;

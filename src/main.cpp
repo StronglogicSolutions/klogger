@@ -9,6 +9,7 @@ int main(int argc, char* argv[])
   logger.w("Let's test this out for {} with the number {}", org, 99);
   logger.i("Let's test this out for {} with the number {}", org, 99);
   logger.t("Let's test this out for {} with the number {}", org, 99);
+  logger.e("Let's test this out for {} with the number {}", org, 99);
 
   return 0;
 }
