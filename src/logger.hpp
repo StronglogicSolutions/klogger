@@ -1,15 +1,14 @@
 #pragma once
 
 #include <map>
-#include <iostream>
-#include <iomanip>
+#include <fstream>
 #include <source_location>
 #include <fmt/format.h>
 #include <g3log/g3log.hpp>
-#include <g3log/logworker.hpp>
 
 namespace kiq::log {
 
+static const int32_t flush_limit = 100;
 enum class custom_levels
 {
   error = 600,
@@ -45,10 +44,6 @@ struct filesink
 };
 //-------------------------------------------------
 static const char* default_log_level = "info";
-namespace
-{
-  std::unique_ptr<g3::LogWorker> lg_;
-}
 //-------------------------------------------------
 enum class loglevel
 {
@@ -90,19 +85,6 @@ static std::string func_name(const std::source_location& loc)
   return full.substr(beg, beg);
 }
 //-------------------------------------------------
-static void to_std_out(const LEVELS& level, const std::string& message, const std::source_location& loc)
-{
-  const auto full_file = std::string{loc.file_name()};
-  const auto file      = full_file.substr(full_file.find_last_of('/') + 1);
-  const auto timestamp = g3::localtime_formatted(g3::to_system_time(
-    g3::high_resolution_time_point{std::chrono::system_clock::now()}), g3::internal::date_formatted + " " + g3::internal::time_formatted);
-
-  std::cout <<
-    "\033[" << to_colour(level) << "m" << timestamp << " [" << level.text << "]\t[" << file << ":" << loc.line() << " " << func_name(loc) << "()]\t" <<
-    message << "\033[m" <<
-  std::endl;
-}
-//-------------------------------------------------
 //--------------------klogger----------------------
 //-------------------------------------------------
 class klogger
@@ -113,42 +95,42 @@ public:
           const std::string& path = "/tmp/");
 
   template<typename... Args>
-  void d(const fmt_loc& format, Args&&... args) const
+  void d(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::debug)
       to_std_out(DEBUG, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void w(const fmt_loc& format, Args&&... args) const
+  void w(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::warn)
       to_std_out(WARNING, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void i(const fmt_loc& format, Args&&... args) const
+  void i(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::info)
       to_std_out(INFO, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void e(const fmt_loc& format, Args&&... args) const
+  void e(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::error)
       to_std_out(ERROR, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void f(const fmt_loc& format, Args&&... args) const
+  void f(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::fatal)
       to_std_out(FATAL, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
-  void t(const fmt_loc& format, Args&&... args) const
+  void t(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::trace)
       to_std_out(TRACE, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
@@ -161,7 +143,12 @@ public:
 
 private:
   void set_level(loglevel level);
+  bool open_file();
+  void to_std_out(const LEVELS& level, const std::string& message, const std::source_location& loc);
 
-  loglevel      level_;
+  loglevel       level_;
+  std::string    path_;
+  std::string    buffer_;
+  std::ofstream* ostream_ptr_{nullptr};
 };
 }  // namespace kiq::log
