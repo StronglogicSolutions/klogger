@@ -1,9 +1,6 @@
 [submodule "third_party/spdlog"]
 	path = src/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "third_party/k3log"]
-	path = third_party/k3log
-	url = https://github.com/StronglogicSolutions/k3log
 [submodule "third_party/fmt"]
 	path = third_party/fmt
 	url = https://github.com/fmtlib/fmt
