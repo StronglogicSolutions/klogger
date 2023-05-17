@@ -3,21 +3,34 @@
 #include <iomanip>
 #include <sstream>
 #include "logger.hpp"
+#include <time.hpp>
 
 namespace kiq::log
 {
 static klogger*          g_instance{nullptr};
+using loglevel_names_t = std::map<loglevel,    std::string>;
 //-------------------------------------------------
-colour to_colour(const LEVELS level)
+static const loglevel_names_t log_level_names
 {
-  switch (level.value)
+  {loglevel::trace,  "TRACE"  },
+  {loglevel::debug,  "DEBUG"  },
+  {loglevel::info,   "INFO"   },
+  {loglevel::warn,   "WARN"   },
+  {loglevel::error,  "ERROR"  },
+  {loglevel::fatal,  "FATAL"  },
+  {loglevel::silent, "SILENT" }
+};
+//-------------------------------------------------
+colour to_colour(loglevel level)
+{
+  switch (level)
   {
-    case g3::kWarningValue :                                return colour::YELLOW;
-    case g3::kDebugValue   :                                return colour::WHITE;
-    case g3::kFatalValue   : g3::internal::wasFatal(level); return colour::RED;
-    case custom_error      :                                return colour::MAGENTA;
-    case custom_trace      :                                return colour::TURQOISE;
-    default:                                                return colour::GREEN;
+    case loglevel::warn  : return colour::YELLOW;
+    case loglevel::debug : return colour::WHITE;
+    case loglevel::fatal : return colour::RED;
+    case loglevel::error : return colour::MAGENTA;
+    case loglevel::trace : return colour::TURQOISE;
+    default:               return colour::GREEN;
   }
 }
 //-------------------------------------------------
@@ -51,15 +64,15 @@ klogger klogger::instance()
   return *g_instance;
 }
 //-------------------------------------------------
-void klogger::to_std_out(const LEVELS& level, const std::string& message, const std::source_location& loc)
+void klogger::to_std_out(loglevel level, const std::string& message, const std::source_location& loc)
 {
   const auto full_file = std::string{loc.file_name()};
   const auto file      = full_file.substr(full_file.find_last_of('/') + 1);
-  const auto timestamp = g3::localtime_formatted(g3::to_system_time(
-    g3::high_resolution_time_point{std::chrono::system_clock::now()}), g3::internal::date_formatted + " " + g3::internal::time_formatted);
+  const auto timestamp = localtime_formatted(to_system_time(
+    high_resolution_time_point{std::chrono::system_clock::now()}), date_formatted + " " + time_formatted);
   std::stringstream ss;
   ss <<
-    "\033[" << to_colour(level) << "m" << timestamp << " [" << level.text << "]\t[" << file << ":" << loc.line() << " " << func_name(loc) << "()]\t" <<
+    "\033[" << to_colour(level) << "m" << timestamp << " [" << log_level_names.at(level) << "]\t[" << file << ":" << loc.line() << " " << func_name(loc) << "()]\t" <<
     message << "\033[m\n";
   const auto entry = ss.str();
   std::cout << entry;

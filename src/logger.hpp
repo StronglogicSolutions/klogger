@@ -4,16 +4,10 @@
 #include <fstream>
 #include <source_location>
 #include <fmt/format.h>
-#include <g3log/g3log.hpp>
 
-namespace kiq::log {
-
-static const int32_t flush_limit = 100;
-enum class custom_levels
+namespace kiq::log
 {
-  error = 600,
-  trace = 700
-};
+static const int32_t flush_limit = 100;
 //-------------------------------------------------
 enum colour
 {
@@ -25,48 +19,32 @@ enum colour
   TURQOISE = 36
 };
 //-------------------------------------------------
-colour to_colour(const LEVELS level);
-//-------------------------------------------------
-constexpr const int custom_error = static_cast<int>(custom_levels::error);
-constexpr const int custom_trace = static_cast<int>(custom_levels::trace);
-//-------------------------------------------------
-static const LEVELS ERROR { custom_error, {"ERROR"} };
-static const LEVELS TRACE { custom_trace, {"TRACE"} };
-//-------------------------------------------------
-struct coloursink
-{
-  void write(g3::LogMessageMover log) const;
-};
-//-------------------------------------------------
-struct filesink
-{
-  void write(g3::LogMessageMover) const;
-};
-//-------------------------------------------------
-static const char* default_log_level = "info";
-//-------------------------------------------------
 enum class loglevel
 {
   silent = 0x00,
-  fatal  = g3::kFatalValue,
-  error  = custom_error,
-  warn   = g3::kWarningValue,
-  info   = g3::kInfoValue,
-  debug  = g3::kDebugValue,
-  trace  = custom_trace
+  fatal  = 0x01,
+  error  = 0x02,
+  warn   = 0x03,
+  info   = 0x04,
+  debug  = 0x05,
+  trace  = 0x06
 };
 //-------------------------------------------------
-using loglevel_t = std::map<std::string, loglevel>;
+using loglevel_t       = std::map<std::string, loglevel>;
 static const loglevel_t log_level
 {
-  {"trace",    loglevel::trace  },
-  {"debug",    loglevel::debug  },
-  {"info",     loglevel::info   },
-  {"warn",     loglevel::warn   },
-  {"error",    loglevel::error  },
-  {"fatal",    loglevel::fatal  },
-  {"silent",   loglevel::silent }
+  {"trace",  loglevel::trace  },
+  {"debug",  loglevel::debug  },
+  {"info",   loglevel::info   },
+  {"warn",   loglevel::warn   },
+  {"error",  loglevel::error  },
+  {"fatal",  loglevel::fatal  },
+  {"silent", loglevel::silent }
 };
+//-------------------------------------------------
+colour to_colour(loglevel level);
+//-------------------------------------------------
+static const char* default_log_level = "info";
 //-------------------------------------------------
 struct fmt_loc
 {
@@ -98,42 +76,42 @@ public:
   void d(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::debug)
-      to_std_out(DEBUG, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      to_std_out(loglevel::debug, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
   void w(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::warn)
-      to_std_out(WARNING, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      to_std_out(loglevel::warn, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
   void i(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::info)
-      to_std_out(INFO, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      to_std_out(loglevel::info, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
   void e(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::error)
-      to_std_out(ERROR, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      to_std_out(loglevel::error, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
   void f(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::fatal)
-      to_std_out(FATAL, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      to_std_out(loglevel::fatal, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
   void t(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::trace)
-      to_std_out(TRACE, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      to_std_out(loglevel::trace, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   loglevel get_level() const;
@@ -144,7 +122,7 @@ public:
 private:
   void set_level(loglevel level);
   bool open_file();
-  void to_std_out(const LEVELS& level, const std::string& message, const std::source_location& loc);
+  void to_std_out(loglevel level, const std::string& message, const std::source_location& loc);
 
   loglevel       level_;
   std::string    path_;
