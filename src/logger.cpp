@@ -2,8 +2,8 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <time.hpp>
 
+#include "time.hpp"
 #include "logger.hpp"
 
 namespace kiq::log
@@ -48,6 +48,7 @@ klogger::klogger(const std::string& name, const std::string& level, const std::s
 klogger::~klogger()
 {
   delete active_ptr_;
+  delete ostream_ptr_;
 }
 //-------------------------------------------------
 void klogger::set_level(loglevel level)
@@ -78,16 +79,15 @@ void klogger::log(loglevel level, const std::string& message, const std::source_
   const auto file      = full_file.substr(full_file.find_last_of('/') + 1);
   const auto timestamp = localtime_formatted(to_system_time(high_resolution_time_point{std::chrono::system_clock::now()}),
                                              date_formatted + " " + time_formatted);
-  std::stringstream ss;
-  ss << "\033[" << to_colour(level)          << "m"    << timestamp
-     << " ["    << log_level_names.at(level) << "]\t[" << file
-     << ":"     << loc.line()                << " "    << func_name(loc)
-     << "()]\t" << message                   << "\033[m\n";
-
-  const auto entry = ss.str();
-
-  active_ptr_->put([this, entry]
+  active_ptr_->put([this, level, message, loc, timestamp, file]
   {
+    std::stringstream ss;
+    ss << "\033[" << to_colour(level)          << "m"    << timestamp
+      << " ["    << log_level_names.at(level) << "]\t[" << file
+      << ":"     << loc.line()                << " "    << func_name(loc)
+      << "()]\t" << message                   << "\033[m\n";
+
+    const auto entry = ss.str();
     std::cout << entry;
     buffer_ += entry;
 
