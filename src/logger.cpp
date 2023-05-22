@@ -2,8 +2,9 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include "logger.hpp"
 #include <time.hpp>
+
+#include "logger.hpp"
 
 namespace kiq::log
 {
@@ -37,9 +38,12 @@ colour to_colour(loglevel level)
 klogger::klogger(const std::string& name, const std::string& level, const std::string& path)
 : path_(path + name + ".kiq" + '_' + std::to_string(getpid()) + ".log")
 {
-  ostream_ptr_ = new std::ofstream;
   if (!open_file())
     throw std::runtime_error("Failed to open log file");
+}
+klogger::~klogger()
+{
+  delete active_ptr_;
 }
 //-------------------------------------------------
 void klogger::set_level(loglevel level)
@@ -64,7 +68,7 @@ klogger klogger::instance()
   return *g_instance;
 }
 //-------------------------------------------------
-void klogger::to_std_out(loglevel level, const std::string& message, const std::source_location& loc)
+void klogger::log(loglevel level, const std::string& message, const std::source_location& loc)
 {
   const auto full_file = std::string{loc.file_name()};
   const auto file      = full_file.substr(full_file.find_last_of('/') + 1);
@@ -75,13 +79,16 @@ void klogger::to_std_out(loglevel level, const std::string& message, const std::
     "\033[" << to_colour(level) << "m" << timestamp << " [" << log_level_names.at(level) << "]\t[" << file << ":" << loc.line() << " " << func_name(loc) << "()]\t" <<
     message << "\033[m\n";
   const auto entry = ss.str();
-  std::cout << entry;
-  buffer_ += entry;
-  if (buffer_.size() > flush_limit)
+  active_ptr_->put([this, entry]
   {
-    (*ostream_ptr_) << buffer_ << std::flush;
-    buffer_.clear();
-  }
+    std::cout << entry;
+    buffer_ += entry;
+    if (buffer_.size() > flush_limit)
+    {
+      (*ostream_ptr_) << buffer_ << std::flush;
+      buffer_.clear();
+    }
+  });
 }
 //-------------------------------------------------
 bool klogger::open_file()

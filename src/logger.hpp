@@ -5,6 +5,8 @@
 #include <source_location>
 #include <fmt/format.h>
 
+#include "active.hpp"
+
 namespace kiq::log
 {
 static const int32_t flush_limit = 100;
@@ -72,46 +74,48 @@ public:
           const std::string& level = default_log_level,
           const std::string& path = "/tmp/");
 
+  ~klogger();
+
   template<typename... Args>
   void d(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::debug)
-      to_std_out(loglevel::debug, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      log(loglevel::debug, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
   void w(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::warn)
-      to_std_out(loglevel::warn, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      log(loglevel::warn, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
   void i(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::info)
-      to_std_out(loglevel::info, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      log(loglevel::info, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
   void e(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::error)
-      to_std_out(loglevel::error, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      log(loglevel::error, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
   void f(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::fatal)
-      to_std_out(loglevel::fatal, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      log(loglevel::fatal, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   template<typename... Args>
   void t(const fmt_loc& format, Args&&... args)
   {
     if (level_ >= loglevel::trace)
-      to_std_out(loglevel::trace, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
+      log(loglevel::trace, fmt::format(fmt::runtime(format.value_), std::forward<Args>(args)...), format.loc_);
   }
 //-------------------------------------------------
   loglevel get_level() const;
@@ -122,11 +126,12 @@ public:
 private:
   void set_level(loglevel level);
   bool open_file();
-  void to_std_out(loglevel level, const std::string& message, const std::source_location& loc);
+  void log(loglevel level, const std::string& message, const std::source_location& loc);
 
-  loglevel       level_;
-  std::string    path_;
-  std::string    buffer_;
-  std::ofstream* ostream_ptr_{nullptr};
+  loglevel         level_;
+  std::string      path_;
+  std::string      buffer_;
+  std::ofstream*   ostream_ptr_{new std::ofstream};
+  active_object<>* active_ptr_ {new active_object<>};
 };
 }  // namespace kiq::log
