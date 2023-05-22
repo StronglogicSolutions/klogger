@@ -2,14 +2,16 @@
 
 int main(int argc, char* argv[])
 {
+  std::string org{"Stronglogic Solutions"};
+
   kiq::log::klogger::init("klogger", "trace");
   auto logger = kiq::log::klogger::instance();
-  std::string org{"Stronglogic Solutions"};
-  logger.d("Let's test this out for {} with the number {}", org, 99);  // obj logger
-  logger.w("Let's test this out for {} with the number {}", org, 99);
-  logger.i("Let's test this out for {} with the number {}", org, 99);
-  logger.t("Let's test this out for {} with the number {}", org, 99);
-  logger.e("Let's test this out for {} with the number {}", org, 99);
+
+  logger.d("Hello {} with integer {}",   org, 99);
+  logger.w("Hello {} with float   {}",   org, 42.69f);
+  logger.i("Hello {} with boolean {}",   org, false);
+  logger.t("Hello {} with pointer {:p}", org, static_cast<void*>(&logger));
+  logger.e("Hello {} with signed  {}",   org, -64);
 
   return 0;
 }
