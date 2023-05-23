@@ -121,7 +121,7 @@ public:
   loglevel get_level() const;
 //-------------------------------------------------
   static void    init(const std::string& name, const std::string& level = default_log_level);
-  static klogger instance();
+  static klogger& instance();
 
 private:
   void set_level(loglevel level);
@@ -134,4 +134,7 @@ private:
   std::ofstream*   ostream_ptr_{new std::ofstream};
   active_object<>* active_ptr_ {new active_object<>};
 };
+
+klogger& klog();
+
 }  // namespace kiq::log

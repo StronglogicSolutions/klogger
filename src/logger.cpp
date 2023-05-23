@@ -68,7 +68,7 @@ void klogger::init(const std::string& name, const std::string& level)
   g_instance->set_level(log_level.at(level));
 }
 //-------------------------------------------------
-klogger klogger::instance()
+klogger& klogger::instance()
 {
   return *g_instance;
 }
@@ -120,6 +120,11 @@ bool klogger::open_file()
   }
 
   return true;
+}
+
+klogger& klog()
+{
+  return klogger::instance();
 }
 
 } // namespace log::kiq
