@@ -56,6 +56,10 @@ struct fmt_loc
   fmt_loc(const char* s, const std::source_location& l = std::source_location::current())
   : value_(s),
     loc_(l) {}
+
+  fmt_loc(const std::string& s, const std::source_location& l = std::source_location::current())
+  : value_(s.c_str()),
+    loc_(l) {}
 };
 //-------------------------------------------------
 static std::string func_name(const std::source_location& loc)
