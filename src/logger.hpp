@@ -4,7 +4,7 @@
 #include <fstream>
 #include <source_location>
 #include <fmt/format.h>
-
+#include <cctype>
 #include "active.hpp"
 
 namespace kiq::log
@@ -61,8 +61,13 @@ struct fmt_loc
 static std::string func_name(const std::source_location& loc)
 {
   std::string full = loc.function_name();
-  const auto  beg  = full.find_first_of(' ') + 1;
-  return full.substr(beg, beg);
+  const auto  opn  = full.find_first_of('(') - 1;
+        auto  i    = opn;
+  for (; i > 0; i--)
+    if (!std::isalpha(full[i]))
+      break;
+
+  return full.substr(i + 1, (opn - i));
 }
 //-------------------------------------------------
 //--------------------klogger----------------------
