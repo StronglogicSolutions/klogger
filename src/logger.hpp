@@ -50,29 +50,11 @@ static const char* default_log_level = "info";
 //-------------------------------------------------
 struct fmt_loc
 {
+  fmt_loc(const char*        s, const std::source_location& l = std::source_location::current());
+  fmt_loc(const std::string& s, const std::source_location& l = std::source_location::current());
   const char*          value_;
   std::source_location loc_;
-
-  fmt_loc(const char* s, const std::source_location& l = std::source_location::current())
-  : value_(s),
-    loc_(l) {}
-
-  fmt_loc(const std::string& s, const std::source_location& l = std::source_location::current())
-  : value_(s.c_str()),
-    loc_(l) {}
 };
-//-------------------------------------------------
-static std::string func_name(const std::source_location& loc)
-{
-  std::string full = loc.function_name();
-  const auto  opn  = full.find_first_of('(') - 1;
-        auto  i    = opn;
-  for (; i > 0; i--)
-    if (!std::isalpha(full[i]))
-      break;
-
-  return full.substr(i + 1, (opn - i));
-}
 //-------------------------------------------------
 //--------------------klogger----------------------
 //-------------------------------------------------
