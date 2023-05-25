@@ -22,6 +22,8 @@ namespace outer
   }
 }
 
+void really_long_function_name() { kiq::log::klog().t("Long function name's log message"); }
+
 
 
 int main(int argc, char* argv[])
@@ -32,7 +34,7 @@ int main(int argc, char* argv[])
   auto logger = kiq::log::klogger::instance();
 
   outer::inner::something::do_thing();
-
+  really_long_function_name();
   kiq::log::klog()
         .d("Hello {} with string {}",    org, "World");
   logger.w("Hello {} with float   {}",   org, 42.69f);

@@ -39,6 +39,27 @@ colour to_colour(loglevel level)
   }
 }
 //-------------------------------------------------
+static std::string func_name(const std::source_location& loc)
+{
+  const std::string full = loc.function_name();
+  const auto  opn  = full.find_first_of('(') - 1;
+        auto  i    = opn;
+  for (; i > 0; i--)
+    if (!std::isalpha(full[i]) && full[i] != '_') break;
+
+  return full.substr(i + 1, (opn - i));
+}
+//-------------------------------------------------
+//-------------------------------------------------
+  fmt_loc::fmt_loc(const std::string& s, const std::source_location& l)
+  : value_(s.c_str()),
+    loc_(l) {}
+//-------------------------------------------------
+  fmt_loc::fmt_loc(const char*        s, const std::source_location& l)
+  : value_(s),
+    loc_(l) {}
+//-------------------------------------------------
+//-------------------------------------------------
 klogger::klogger(const std::string& name, const std::string& level, const std::string& path)
 : path_(path + name + ".kiq_" + std::to_string(getpid()) + ".log")
 {
@@ -82,10 +103,10 @@ void klogger::log(loglevel level, const std::string& message, const std::source_
   active_ptr_->put([this, level, message, loc, timestamp, file]
   {
     std::stringstream ss;
-    ss << "\033[" << to_colour(level)          << "m"    << timestamp
-      << " ["    << log_level_names.at(level) << "]\t[" << file
-      << ":"     << loc.line()                << " "    << func_name(loc)
-      << "()]\t" << message                   << "\033[m\n";
+    ss << "\033[" << to_colour(level) << "m"  << timestamp     << " [" << std::setw(5)
+       << log_level_names.at(level)   << "] " << file
+       << ":"     << loc.line()       << " "  << std::setw(25) << func_name(loc)
+       << "() - " << message          << "\033[m\n";
 
     const auto entry = ss.str();
     std::cout << entry;
