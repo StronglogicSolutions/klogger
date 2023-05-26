@@ -103,10 +103,10 @@ void klogger::log(loglevel level, const std::string& message, const std::source_
   active_ptr_->put([this, level, message, loc, timestamp, file]
   {
     std::stringstream ss;
-    ss << "\033[" << to_colour(level) << "m"  << timestamp     << " [" << std::setw(5)
-       << log_level_names.at(level)   << "] " << file
-       << ":"     << loc.line()       << " "  << std::setw(25) << func_name(loc)
-       << "() - " << message          << "\033[m\n";
+    ss << "\033[" << to_colour(level) << "m"        << timestamp     << " ["          << std::setw(5)
+       << log_level_names.at(level)   << "] "       << std::setw(20) << file          << ":"
+       << std::setw(3)                << loc.line() << " "           << std::setw(25)
+       << func_name(loc)              << "() - "    << message       << "\033[m\n";
 
     const auto entry = ss.str();
     std::cout << entry;
