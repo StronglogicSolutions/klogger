@@ -84,8 +84,10 @@ loglevel klogger::get_level() const
 //-------------------------------------------------
 void klogger::init(const std::string& name, const std::string& level)
 {
-  if (!g_instance)
-    g_instance = new klogger(name, level);
+  if (g_instance)
+    return g_instance->log(loglevel::warn, "logger already initialized", std::source_location{});
+
+  g_instance = new klogger(name, level);
   g_instance->set_level(log_level.at(level));
 }
 //-------------------------------------------------
