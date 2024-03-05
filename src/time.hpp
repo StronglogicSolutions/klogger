@@ -6,8 +6,9 @@
 
 namespace kiq::log
 {
-using system_time_point = std::chrono::time_point<std::chrono::system_clock>;
-using high_resolution_time_point =  std::chrono::time_point<std::chrono::high_resolution_clock>;
+using system_time_point          = std::chrono::sys_time<std::chrono::microseconds>;
+using high_resolution_time_point =  std::chrono::sys_time<std::chrono::nanoseconds>;
+;
 static const size_t kFractionalIdentierSize  = 2;
 static const std::string kFractionalIdentier = "%f";
 static const std::string date_formatted = "%Y/%m/%d";
@@ -132,9 +133,10 @@ inline system_time_point to_system_time(const high_resolution_time_point& ts)
     // of the two static variables but relative times within one log will be as precise as
     // high_resolution_clock.
     using namespace std::chrono;
-    static const auto hrs_now = high_resolution_clock::now();
-    static const auto sys_now = system_clock::now();
+    // static const auto hrs_now = high_resolution_time_point::clock::now();
+    static const auto sys_now = high_resolution_time_point::clock::now();
 
-    return time_point_cast<system_clock::duration>(sys_now + (ts - hrs_now));
+    // return time_point_cast<system_time_point>(sys_now + (ts - hrs_now));
+    return system_time_point::clock::now();
   }
 } // ns kiq::log

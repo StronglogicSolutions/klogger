@@ -100,8 +100,10 @@ void klogger::log(loglevel level, const std::string& message, const std::source_
 {
   const auto full_file = std::string{loc.file_name()};
   const auto file      = full_file.substr(full_file.find_last_of('/') + 1);
-  const auto timestamp = localtime_formatted(to_system_time(high_resolution_time_point{std::chrono::system_clock::now()}),
-                                             date_formatted + " " + time_formatted);
+  const auto t_point   = std::chrono::system_clock::now();
+  const auto timestamp = localtime_formatted(to_system_time(high_resolution_time_point{    
+    std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>(
+      t_point)}), date_formatted + " " + time_formatted);
   active_ptr_->put([this, level, message, loc, timestamp, file]
   {
     std::stringstream ss;
