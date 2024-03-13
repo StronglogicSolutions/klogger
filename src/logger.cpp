@@ -15,6 +15,8 @@ namespace
 //-------------------------------------------------
 using loglevel_names_t = std::map<loglevel,    std::string>;
 //-------------------------------------------------
+const char* g_default_path = "/tmp/";
+//-------------------------------------------------
 static const loglevel_names_t log_level_names
 {
   {loglevel::trace,  "TRACE"  },
@@ -60,9 +62,9 @@ static std::string func_name(const std::source_location& loc)
     loc_(l) {}
 //-------------------------------------------------
 //-------------------------------------------------
-klogger::klogger(const std::string& name, const std::string& level, const std::string& path, bool to_std_out)
+klogger::klogger(const std::string& name, const std::string& level, const std::string& path, bool use_stdout)
 : path_(path + name + ".kiq_" + std::to_string(getpid()) + ".log"),
-  to_std_out_(to_std_out)
+  to_stdout_(use_stdout)
 {
   if (!open_file())
     throw std::runtime_error("Failed to open log file");
@@ -83,12 +85,12 @@ loglevel klogger::get_level() const
   return level_;
 }
 //-------------------------------------------------
-void klogger::init(const std::string& name, const std::string& level)
+void klogger::init(const std::string& name, const std::string& level, bool use_stdout)
 {
   if (g_instance)
     return g_instance->log(loglevel::warn, "logger already initialized", std::source_location{});
 
-  g_instance = new klogger(name, level);
+  g_instance = new klogger(name, level, g_default_path, use_stdout);
   g_instance->set_level(log_level.at(level));
 }
 //-------------------------------------------------
@@ -120,7 +122,7 @@ void klogger::log(loglevel level, const std::string& message, const std::source_
       buffer_.clear();
     }
 
-    if (to_std_out_)
+    if (to_stdout_)
       std::cout << entry;
   });
 }
