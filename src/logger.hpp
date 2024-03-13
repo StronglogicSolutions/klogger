@@ -63,7 +63,8 @@ class klogger
 public:
   klogger(const std::string& name  = "KLOG",
           const std::string& level = default_log_level,
-          const std::string& path = "/tmp/");
+          const std::string& path = "/tmp/",
+          bool  to_std_out        = true);
 
   ~klogger();
 
@@ -124,6 +125,7 @@ private:
   std::string      buffer_;
   std::ofstream*   ostream_ptr_{new std::ofstream};
   active_object<>* active_ptr_ {new active_object<>};
+  bool             to_std_out_ {true};
 };
 
 klogger& klog();
