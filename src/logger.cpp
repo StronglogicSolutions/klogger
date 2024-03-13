@@ -2,8 +2,8 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <time.hpp>
 
+#include "time.hpp"
 #include "logger.hpp"
 
 namespace kiq::log
@@ -39,6 +39,27 @@ colour to_colour(loglevel level)
   }
 }
 //-------------------------------------------------
+static std::string func_name(const std::source_location& loc)
+{
+  const std::string full = loc.function_name();
+  const auto  opn  = full.find_first_of('(') - 1;
+        auto  i    = opn;
+  for (; i > 0; i--)
+    if (!std::isalpha(full[i]) && full[i] != '_') break;
+
+  return full.substr(i + 1, (opn - i));
+}
+//-------------------------------------------------
+//-------------------------------------------------
+  fmt_loc::fmt_loc(const std::string& s, const std::source_location& l)
+  : value_(s.c_str()),
+    loc_(l) {}
+//-------------------------------------------------
+  fmt_loc::fmt_loc(const char*        s, const std::source_location& l)
+  : value_(s),
+    loc_(l) {}
+//-------------------------------------------------
+//-------------------------------------------------
 klogger::klogger(const std::string& name, const std::string& level, const std::string& path)
 : path_(path + name + ".kiq_" + std::to_string(getpid()) + ".log")
 {
@@ -48,6 +69,7 @@ klogger::klogger(const std::string& name, const std::string& level, const std::s
 klogger::~klogger()
 {
   delete active_ptr_;
+  delete ostream_ptr_;
 }
 //-------------------------------------------------
 void klogger::set_level(loglevel level)
@@ -62,12 +84,14 @@ loglevel klogger::get_level() const
 //-------------------------------------------------
 void klogger::init(const std::string& name, const std::string& level)
 {
-  if (!g_instance)
-    g_instance = new klogger(name, level);
+  if (g_instance)
+    return g_instance->log(loglevel::warn, "logger already initialized", std::source_location{});
+
+  g_instance = new klogger(name, level);
   g_instance->set_level(log_level.at(level));
 }
 //-------------------------------------------------
-klogger klogger::instance()
+klogger& klogger::instance()
 {
   return *g_instance;
 }
@@ -78,16 +102,15 @@ void klogger::log(loglevel level, const std::string& message, const std::source_
   const auto file      = full_file.substr(full_file.find_last_of('/') + 1);
   const auto timestamp = localtime_formatted(to_system_time(high_resolution_time_point{std::chrono::system_clock::now()}),
                                              date_formatted + " " + time_formatted);
-  std::stringstream ss;
-  ss << "\033[" << to_colour(level)          << "m"    << timestamp
-     << " ["    << log_level_names.at(level) << "]\t[" << file
-     << ":"     << loc.line()                << " "    << func_name(loc)
-     << "()]\t" << message                   << "\033[m\n";
-
-  const auto entry = ss.str();
-
-  active_ptr_->put([this, entry]
+  active_ptr_->put([this, level, message, loc, timestamp, file]
   {
+    std::stringstream ss;
+    ss << "\033[" << to_colour(level) << "m"        << timestamp     << " ["          << std::setw(5)
+       << log_level_names.at(level)   << "] "       << std::setw(20) << file          << ":"
+       << std::setw(3)                << loc.line() << " "           << std::setw(25)
+       << func_name(loc)              << "() - "    << message       << "\033[m\n";
+
+    const auto entry = ss.str();
     std::cout << entry;
     buffer_ += entry;
 
@@ -120,6 +143,11 @@ bool klogger::open_file()
   }
 
   return true;
+}
+
+klogger& klog()
+{
+  return klogger::instance();
 }
 
 } // namespace log::kiq

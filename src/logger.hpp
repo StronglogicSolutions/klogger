@@ -4,7 +4,7 @@
 #include <fstream>
 #include <source_location>
 #include <fmt/format.h>
-
+#include <cctype>
 #include "active.hpp"
 
 namespace kiq::log
@@ -50,20 +50,11 @@ static const char* default_log_level = "info";
 //-------------------------------------------------
 struct fmt_loc
 {
+  fmt_loc(const char*        s, const std::source_location& l = std::source_location::current());
+  fmt_loc(const std::string& s, const std::source_location& l = std::source_location::current());
   const char*          value_;
   std::source_location loc_;
-
-  fmt_loc(const char* s, const std::source_location& l = std::source_location::current())
-  : value_(s),
-    loc_(l) {}
 };
-//-------------------------------------------------
-static std::string func_name(const std::source_location& loc)
-{
-  std::string full = loc.function_name();
-  const auto  beg  = full.find_first_of(' ') + 1;
-  return full.substr(beg, beg);
-}
 //-------------------------------------------------
 //--------------------klogger----------------------
 //-------------------------------------------------
@@ -121,7 +112,7 @@ public:
   loglevel get_level() const;
 //-------------------------------------------------
   static void    init(const std::string& name, const std::string& level = default_log_level);
-  static klogger instance();
+  static klogger& instance();
 
 private:
   void set_level(loglevel level);
@@ -134,4 +125,7 @@ private:
   std::ofstream*   ostream_ptr_{new std::ofstream};
   active_object<>* active_ptr_ {new active_object<>};
 };
+
+klogger& klog();
+
 }  // namespace kiq::log
