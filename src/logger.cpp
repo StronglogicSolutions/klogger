@@ -60,8 +60,9 @@ static std::string func_name(const std::source_location& loc)
     loc_(l) {}
 //-------------------------------------------------
 //-------------------------------------------------
-klogger::klogger(const std::string& name, const std::string& level, const std::string& path)
-: path_(path + name + ".kiq_" + std::to_string(getpid()) + ".log")
+klogger::klogger(const std::string& name, const std::string& level, const std::string& path, bool to_std_out)
+: path_(path + name + ".kiq_" + std::to_string(getpid()) + ".log"),
+  to_std_out_(to_std_out)
 {
   if (!open_file())
     throw std::runtime_error("Failed to open log file");
@@ -111,7 +112,6 @@ void klogger::log(loglevel level, const std::string& message, const std::source_
        << func_name(loc)              << "() - "    << message       << "\033[m\n";
 
     const auto entry = ss.str();
-    std::cout << entry;
     buffer_ += entry;
 
     if (buffer_.size() > flush_limit)
@@ -119,6 +119,9 @@ void klogger::log(loglevel level, const std::string& message, const std::source_
       (*ostream_ptr_) << buffer_ << std::flush;
       buffer_.clear();
     }
+
+    if (to_std_out_)
+      std::cout << entry;
   });
 }
 //-------------------------------------------------
