@@ -64,7 +64,7 @@ public:
   klogger(const std::string& name  = "KLOG",
           const std::string& level = default_log_level,
           const std::string& path = "/tmp/",
-          bool  to_std_out        = true);
+          bool  use_stdout        = true);
 
   ~klogger();
 
@@ -112,7 +112,7 @@ public:
 //-------------------------------------------------
   loglevel get_level() const;
 //-------------------------------------------------
-  static void    init(const std::string& name, const std::string& level = default_log_level);
+  static void    init(const std::string& name, const std::string& level = default_log_level, bool use_stdout = true);
   static klogger& instance();
 
 private:
@@ -125,7 +125,7 @@ private:
   std::string      buffer_;
   std::ofstream*   ostream_ptr_{new std::ofstream};
   active_object<>* active_ptr_ {new active_object<>};
-  bool             to_std_out_ {true};
+  bool             to_stdout_  {true};
 };
 
 klogger& klog();
